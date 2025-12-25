@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Islam AI</title>
+<style>
+body{margin:0;font-family:Arial;background:#0f172a;color:white;text-align:center;}
+#welcomeScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#020617;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:10;}
+#welcomeScreen input{padding:10px;font-size:18px;border-radius:8px;border:none;margin:10px;text-align:center;}
+#welcomeScreen button{padding:10px 20px;font-size:18px;border:none;border-radius:8px;background:#22c55e;cursor:pointer;}
+#chatScreen{display:none;padding:20px;}
+#chatBox{max-width:500px;margin:auto;height:300px;overflow-y:auto;background:#111827;padding:10px;border-radius:10px;text-align:left;}
+input#userMsg{width:70%;padding:10px;border-radius:8px;border:none;margin-top:10px;}
+button#sendBtn{padding:10px 15px;border-radius:8px;border:none;background:#22c55e;color:white;cursor:pointer;}
+.user{color:#38bdf8;text-align:right;margin:5px;}
+.ai{color:#22c55e;text-align:left;margin:5px;}
+</style>
+</head>
+<body>
+
+<!-- شاشة الاسم -->
+<div id="welcomeScreen">
+  <h2>👋 أهلاً بيك</h2>
+  <p>اكتب اسمك</p>
+  <input id="nameInput" placeholder="اسمك">
+  <button onclick="enterSite()">دخول</button>
+</div>
+
+<!-- شاشة الشات -->
+<div id="chatScreen">
+  <h2 id="welcomeText" class="glow"></h2>
+  <div id="chatBox"></div>
+  <input id="userMsg" placeholder="اكتب سؤالك واضغط Enter">
+  <button id="sendBtn">إرسال</button>
+</div>
+
+<script>
+const API_KEY = "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"; // حط مفتاحك هنا
+
+let userName = "";
+
+function enterSite(){
+  userName = document.getElementById("nameInput").value.trim();
+  if(userName === "") return;
+  document.getElementById("welcomeText").innerText = "نورت يا " + userName + " 🌟";
+  document.getElementById("welcomeScreen").style.display = "none";
+  document.getElementById("chatScreen").style.display = "block";
+}
+
+// ارسال رسالة
+const userMsgInput = document.getElementById("userMsg");
+const sendBtn = document.getElementById("sendBtn");
+const chatBox = document.getElementById("chatBox");
+
+userMsgInput.addEventListener("keydown", function(e){ if(e.key==="Enter") sendMsg(); });
+sendBtn.addEventListener("click", sendMsg);
+
+async function sendMsg(){
+  const text = userMsgInput.value.trim();
+  if(!text) return;
+  
+  chatBox.innerHTML += `<div class="user">أنت: ${text}</div>`;
+  userMsgInput.value = "";
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  // رد مؤقت
+  chatBox.innerHTML += `<div class="ai">Islam AI: يفكر...</div>`;
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  // طلب من OpenAI API
+  try{
+    const res = await fetch("https://api.openai.com/v1/chat/completions",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+API_KEY
+      },
+      body:JSON.stringify({
+        model:"gpt-4o-mini",
+        messages:[
+          {role:"system", content:"أنت مساعد ذكي اسمه Islam AI، تتكلم عربي بوضوح وبأسلوب لطيف."},
+          {role:"user", content:text}
+        ]
+      })
+    });
+    const data = await res.json();
+    const reply = data.choices[0].message.content;
+    document.querySelector(".ai:last-child").innerText = "Islam AI: " + reply;
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }catch(err){
+    document.querySelector(".ai:last-child").innerText = "Islam AI: حصل خطأ، حاول مرة تانية.";
+  }
+}
+</script>
+
+</body>
+</html>
